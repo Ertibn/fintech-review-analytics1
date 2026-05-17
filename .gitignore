@@ -1,6 +1,8 @@
 # Data and Database
 data/
+!data/raw/
 *.csv
+!data/raw/*.csv
 *.db
 *.sqlite
 *.sqlite3
