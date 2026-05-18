@@ -33,12 +33,10 @@ fintech-review-analytics/
 │   └── task2_sentiment_thematic_analysis.ipynb # Sentiment & Thematic Notebook
 ├── scripts/
 │   ├── create_notebooks.py        # Programmatic notebook generator script
-│   ├── generate_plots.py          # Seaborn plotting engine
-│   ├── scrape_reviews.py          # Google Play Store review extraction pipeline
+│   ├── scrape_reviews.py          # Google Play Store review extraction pipeline (English-Only)
 │   └── sentiment_analysis.py      # VADER and Keyword theme classifier
 ├── tests/
 │   └── test_pipeline.py           # Pytest unit tests for NLP and Data Cleaning
-├── dashboard.html                 # Interactive premium dark mode analytics dashboard
 ├── requirements.txt               # Project dependency specification
 ├── .gitignore                     # Git exclusion rules
 └── README.md                      # Professional project documentation (this file)
@@ -86,21 +84,15 @@ The data pipeline can be executed in two ways: through **executable Python scrip
 ### Running Python Scripts
 
 1.  **Execute Review Scraper:**
-    Scrapes the newest 600 reviews for CBE, BOA, and Dashen Bank. It filters duplicates, normalizes dates, and saves a clean dataset to `data/raw/cleaned_reviews.csv`.
+    Scrapes the newest 1,200 reviews for CBE, BOA, and Dashen Bank, applying our multi-layered English language filter. It de-duplicates reviews, filters non-English content, normalizes dates, and saves the cleaned English dataset to `data/raw/cleaned_reviews.csv`.
     ```bash
     python scripts/scrape_reviews.py
     ```
 
 2.  **Execute Sentiment & Thematic Classifier:**
-    Ingests the cleaned reviews and runs VADER sentiment analysis to label reviews as `positive`, `negative`, or `neutral`. It classifies user complaints into 5 fintech operational themes.
+    Ingests the cleaned English reviews, runs VADER and DistilBERT sentiment analysis to label reviews as `positive`, `negative`, or `neutral`. It classifies user complaints into 5 fintech operational themes and saves results to `data/raw/sentiment_reviews.csv`.
     ```bash
     python scripts/sentiment_analysis.py
-    ```
-
-3.  **Generate Visualization Charts:**
-    Processes the sentiment-enriched dataset to compile and save three premium Seaborn charts into `notebooks/plots/`.
-    ```bash
-    python scripts/generate_plots.py
     ```
 
 ### Running Jupyter Notebooks
@@ -111,6 +103,19 @@ jupyter notebook
 ```
 *   Navigate to `notebooks/task1_data_scraping_preprocessing.ipynb` to view the data collection workflow.
 *   Navigate to `notebooks/task2_sentiment_thematic_analysis.ipynb` to view the sentiment, keyword mapping, and visualization generation workflow.
+
+---
+
+## 🔠 English-Only Filtering Engine
+
+Google Play Store reviews for Ethiopian banking apps commonly contain Amharic text, either written in native Ethiopic Unicode characters (Ge'ez script) or transliterated into Latin characters (e.g., *"Betam arif new"*, *"tiru mobile bank"*). 
+
+To ensure **100% clean English reviews**, we implemented a professional, multi-layered language verification engine:
+1.  **Ge'ez Character Block Check:** Uses regular expressions to scan for and immediately discard text containing characters in the Ethiopic Unicode range (`\u1200-\u137F`, `\u2D80-\u2DDF`, `\uAB00-\uAB2F`).
+2.  **Short Review Safeguard:** Pre-approves high-frequency short reviews (e.g., *"good"*, *"excellent"*, *"crashes"*, *"bad app"*, *"ok"*) against a curated English lexicon to prevent naive language models from misclassifying them (which often happens with single-word responses).
+3.  **Transliteration Density Filter:** Rejects reviews that contain a high density (>30%) of transliterated Amharic slang/vocabulary words (e.g., *betam*, *arif*, *temetatagn*, *nw*, *new*, *gobez*, *tiru*, *konjo*).
+4.  **Hugging Face / LangDetect Verification:** Runs `langdetect` on the cleaned and validated review string to confirm the final classification is `'en'`.
+5.  **Heuristic Token Overlap Fallback:** If `langdetect` fails due to formatting, the script evaluates the text against a dictionary of fintech terms and keeps it if there is a strong English overlap.
 
 ---
 
@@ -127,25 +132,6 @@ On every push to the `main` branch, **GitHub Actions** automatically runs this t
 
 ---
 
-## 📊 Interactive Analytics Dashboard
-
-The project includes a premium, high-fidelity, single-page web dashboard (`dashboard.html`) to display results interactively.
-
-### Dashboard Features:
-*   **KPI Metrics Cards:** Displays total reviews processed, positive sentiment ratio, and average star ratings dynamically.
-*   **Interactive Visualizations:** Renders responsive sentiment breakdowns and thematic charts powered by **Chart.js** CDN.
-*   **Search & Filter Engine:** Allows real-time filtering of customer reviews by specific bank, star rating, or custom keyword search.
-*   **Glassmorphism UI:** Formatted with a dark-mode premium interface, responsive CSS grid, and Outfit/Inter typography.
-
-### Run Dashboard Locally:
-Start a local lightweight web server from the project directory:
-```bash
-python -m http.server 8000
-```
-Open your browser and navigate to: **`http://localhost:8000/dashboard.html`**
-
----
-
 ## 💡 Key Analytical Findings (Interim Phase)
 
 1.  **Apollo (Bank of Abyssinia) Leads:** Holds a spectacular **82.3% Positive Sentiment** rate, driven heavily by praise for its sleek, modern UI/UX and fast login flows.
@@ -155,3 +141,4 @@ Open your browser and navigate to: **`http://localhost:8000/dashboard.html`**
 ---
 
 *Report prepared by Omega Consultancy. Code and pipeline released under the MIT License.*
+

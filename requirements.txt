@@ -7,5 +7,4 @@ torch==2.3.0
 scikit-learn==1.4.2
 pytest==8.2.0
 vaderSentiment==3.3.2
-psycopg2-binary==2.9.9
-sqlalchemy==2.0.29
+langdetect==1.0.9
