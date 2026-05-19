@@ -21,23 +21,27 @@ fintech-review-analytics/
 │   └── workflows/
 │       └── unittests.yml          # GitHub Actions CI/CD Pipeline
 ├── data/
-│   └── raw/
-│       ├── cleaned_reviews.csv    # Preprocessed and normalized review dataset
-│       └── sentiment_reviews.csv  # Enriched reviews with sentiment labels and themes
+│   └── raw/                       # Generated local review outputs (ignored by git)
 ├── notebooks/
-│   ├── plots/
-│   │   ├── ratings_by_bank.png    # Seaborn Star Ratings Distribution
-│   │   ├── sentiment_distribution.png  # Seaborn Sentiment Split by Bank
-│   │   └── themes_frequency.png   # Seaborn Theme Frequencies per Bank
-│   ├── task1_data_scraping_preprocessing.ipynb # Ingestion & Cleaning Notebook
-│   └── task2_sentiment_thematic_analysis.ipynb # Sentiment & Thematic Notebook
+│   ├── plots/                     # Generated visualizations
+│   │   ├── ratings_by_bank.png
+│   │   ├── sentiment_distribution.png
+│   │   ├── themes_frequency.png
+│   │   └── sentiment_trend.png
+│   ├── task1_data_scraping_preprocessing.ipynb
+│   └── task2_sentiment_thematic_analysis.ipynb
 ├── scripts/
-│   ├── create_notebooks.py        # Programmatic notebook generator script
-│   ├── scrape_reviews.py          # Google Play Store review extraction pipeline (English-Only)
-│   └── sentiment_analysis.py      # VADER and Keyword theme classifier
+│   ├── create_notebooks.py
+│   ├── database_ingestion.py      # PostgreSQL/SQLite persistence pipeline
+│   ├── extract_insights.py        # Bank-level insights summary generation
+│   ├── generate_plots.py          # Visualization generation for analysis
+│   ├── scrape_reviews.py          # Google Play Store review extraction pipeline
+│   └── sentiment_analysis.py      # Transformer-based sentiment and theme extraction
 ├── tests/
-│   └── test_pipeline.py           # Pytest unit tests for NLP and Data Cleaning
+│   ├── test_database.py
+│   └── test_pipeline.py           # Pytest unit tests for NLP and data cleaning
 ├── requirements.txt               # Project dependency specification
+├── scripts/schema.sql             # PostgreSQL schema definitions
 ├── .gitignore                     # Git exclusion rules
 └── README.md                      # Professional project documentation (this file)
 ```
@@ -84,15 +88,33 @@ The data pipeline can be executed in two ways: through **executable Python scrip
 ### Running Python Scripts
 
 1.  **Execute Review Scraper:**
-    Scrapes the newest 1,200 reviews for CBE, BOA, and Dashen Bank, applying our multi-layered English language filter. It de-duplicates reviews, filters non-English content, normalizes dates, and saves the cleaned English dataset to `data/raw/cleaned_reviews.csv`.
+    Scrapes the newest English reviews for CBE, BOA, and Dashen Bank. It de-duplicates reviews, filters out non-English content, normalizes dates, and saves the cleaned dataset to `data/raw/cleaned_reviews.csv`.
     ```bash
     python scripts/scrape_reviews.py
     ```
 
 2.  **Execute Sentiment & Thematic Classifier:**
-    Ingests the cleaned English reviews, runs VADER and DistilBERT sentiment analysis to label reviews as `positive`, `negative`, or `neutral`. It classifies user complaints into 5 fintech operational themes and saves results to `data/raw/sentiment_reviews.csv`.
+    Loads the cleaned dataset, applies VADER and DistilBERT sentiment scoring, labels each review as `positive`, `negative`, or `neutral`, and extracts fintech themes.
     ```bash
     python scripts/sentiment_analysis.py
+    ```
+
+3.  **Create the Database and Insert Processed Reviews:**
+    Uses PostgreSQL when available, otherwise falls back to SQLite for local development. The database schema is also available in `scripts/schema.sql`.
+    ```bash
+    python scripts/database_ingestion.py
+    ```
+
+4.  **Generate Stakeholder Visualizations:**
+    Produces bank-level sentiment, rating, theme frequency, and sentiment trend plots for reporting.
+    ```bash
+    python scripts/generate_plots.py
+    ```
+
+5.  **Extract Bank Insights:**
+    Builds a concise insights summary for each bank based on sentiment distribution, theme counts, and top keywords.
+    ```bash
+    python scripts/extract_insights.py
     ```
 
 ### Running Jupyter Notebooks
