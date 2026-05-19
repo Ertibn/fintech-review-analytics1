@@ -9,3 +9,5 @@ pytest==8.2.0
 vaderSentiment==3.3.2
 langdetect==1.0.9
 numpy==1.26.4
+SQLAlchemy==2.0.49
+psycopg2-binary==2.9.10
